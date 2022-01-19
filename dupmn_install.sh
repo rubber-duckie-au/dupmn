@@ -23,11 +23,12 @@ echo -e "\n===================================================\
          \n                                ╗ made by ${GREEN}neo3587${NC} ╔\
          \n           Source: ${CYAN}https://github.com/neo3587/dupmn${NC}\
          \n   FAQs: ${CYAN}https://github.com/neo3587/dupmn/wiki/FAQs${NC}\
-         \n  BTC Donations: ${YELLOW}3F6J19DmD5jowwwQbE9zxXoguGPVR716a7${NC}\
+	 \n   Update for XDN: ${CYAN}https://github.com/rubber-duckie-au/dupmn${NC}\
+         \n   BTC Donations (Duckie): ${YELLOW}1EBLFpnrfXKPdYndiUK86YuZWuQvAZqr1Y${NC}\
          \n===================================================\
          \n                                                   "
 
-dupmn_update=$(curl -s https://raw.githubusercontent.com/neo3587/dupmn/master/dupmn.sh)
+dupmn_update=$(curl -s https://raw.githubusercontent.com/rubber-duckie-au/dupmn/master/dupmn.sh)
 
 if [[ -f /usr/bin/dupmn && ! $(diff -q <(echo "$dupmn_update") /usr/bin/dupmn) ]]; then
 	echo_json_upd "${GREEN}dupmn${NC} is already updated to the last version" 0
