@@ -670,7 +670,7 @@ function cmd_bootstrap() {
 	for x in $(ls $(get_folder $2) | grep -v ".conf\|wallet.dat"); do
 		rm -rf $(get_folder $2)$x
 	done
-	rsync -adm --ignore-existing --info=progress2 $(get_folder $1) $(get_folder $2)
+	rsync -adm --ignore-existing --exclude 'wallet.dat' --info=progress2 $(get_folder $1) $(get_folder $2)
 
 	[[ $orig_loaded ]] && echo -e "Reactivating node $1..." && wallet_cmd start $1 > /dev/null
 	[[ $dest_loaded ]] && echo -e "Reactivating node $2..." && wallet_cmd start $2 > /dev/null
