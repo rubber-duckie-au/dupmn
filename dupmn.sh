@@ -31,13 +31,11 @@ readonly NC='\e[0m'
 PROFILE_NAME=""
 COIN_NAME=""
 COIN_DAEMON=""
-COIN_CLI=""
 COIN_FOLDER=""
 COIN_CONFIG=""
 RPC_PORT=""
 COIN_SERVICE=""
 DUP_COUNT=""
-EXEC_COIN_CLI=""
 EXEC_COIN_DAEMON=""
 IP=""
 IP_TYPE=""
@@ -72,7 +70,7 @@ function load_profile() {
 	local -A prof=$(get_conf .dupmn/$1)
 	local -A conf=$(get_conf .dupmn/dupmn.conf)
 
-	local CMD_ARRAY=(COIN_NAME COIN_DAEMON COIN_CLI COIN_FOLDER COIN_CONFIG)
+	local CMD_ARRAY=(COIN_NAME COIN_DAEMON COIN_FOLDER COIN_CONFIG)
 	for var in "${CMD_ARRAY[@]}"; do
 		if [[ ! "${!prof[@]}" =~ "$var" || -z "${prof[$var]}" ]]; then
 			echo -e "Seems like you modified something that was supposed to remain unmodified: ${MAGENTA}$var${NC} parameter should exists and have a assigned value in ${GREEN}.dupmn/$1${NC} file"
@@ -91,14 +89,12 @@ function load_profile() {
 	PROFILE_NAME="$1"
 	COIN_NAME="${prof[COIN_NAME]}"
 	COIN_DAEMON="${prof[COIN_DAEMON]}"
-	COIN_CLI="${prof[COIN_CLI]}"
 	COIN_FOLDER="${prof[COIN_FOLDER]}"
 	COIN_CONFIG="${prof[COIN_CONFIG]}"
 	RPC_PORT="${prof[RPC_PORT]}"
 	COIN_SERVICE="${prof[COIN_SERVICE]}"
 	DUP_COUNT=$(stoi ${conf[$1]})
 	EXEC_COIN_DAEMON="${prof[COIN_PATH]}$COIN_DAEMON"
-	EXEC_COIN_CLI="${prof[COIN_PATH]}$COIN_CLI"
 	FORCE_LISTEN="${prof[FORCE_LISTEN]}"
 
 	if [[ $2 -eq 1 ]]; then
@@ -110,14 +106,7 @@ function load_profile() {
 				exit
 			fi
 		fi
-		if [[ ! -f "$EXEC_COIN_CLI" ]]; then
-			EXEC_COIN_CLI=$(which $COIN_CLI)
-			if [[ ! -f "$EXEC_COIN_CLI" ]]; then
-				echo -e "Can't locate ${GREEN}$COIN_CLI${NC}, it must be at the defined path from ${CYAN}\"COIN_PATH\"${NC} or in ${CYAN}/usr/bin/${NC} or ${CYAN}/usr/local/bin/${NC}"
-				echo_json "{\"error\":\"coin cli can't be found\",\"errcode\":104}"
-				exit
-			fi
-		fi
+
 	fi
 }
 function get_conf() {
@@ -170,8 +159,8 @@ function configure_systemd() {
 	\nUser=root\
 	\nGroup=root\
 	\nType=forking\
-	\nExecStart=$EXEC_COIN_DAEMON -daemon -conf=$COIN_FOLDER$1/$COIN_CONFIG -datadir=$COIN_FOLDER$1\
-	\nExecStop=$EXEC_COIN_CLI -conf=$COIN_FOLDER$1/$COIN_CONFIG -datadir=$COIN_FOLDER$1 stop\
+	\nExecStart=$EXEC_COIN_DAEMON -conf=$COIN_FOLDER$1/$COIN_CONFIG -datadir=$COIN_FOLDER$1\
+	\nExecStop=$EXEC_COIN_DAEMON -conf=$COIN_FOLDER$1/$COIN_CONFIG -datadir=$COIN_FOLDER$1 stop\
 	\nRestart=always\
 	\nPrivateTmp=true\
 	\nTimeoutStopSec=60s\
@@ -205,7 +194,7 @@ function wallet_cmd() {
 	function wallet_loaded() {
 		local timer=$([[ $2 ]] && echo $2 || echo 0)
 		for (( i=0; i<=$timer; i++ )); do
-			[[ $(is_number $($(exec_coin cli $1) getblockcount)) ]] && echo "1" && break
+			[[ $(is_number $($(exec_coin daemon $1) getblockcount)) ]] && echo "1" && break
 			sleep 1
 		done
 	}
@@ -225,7 +214,7 @@ function wallet_cmd() {
 		"stop")
 			if [[ $(wallet_loaded $2) ]]; then
 				systemctl stop $service &> /dev/null
-				[[ $($(exec_coin cli $2) stop) ]] && sleep 3
+				[[ $($(exec_coin daemon $2) stop) ]] && sleep 3
 				echo "1"
 			fi
 			;;
@@ -235,8 +224,7 @@ function wallet_cmd() {
 }
 function exec_coin() {
 	# <$1 = daemon|cli> | [$2 = dup_number]
-	local use_cmd=$([[ $1 == "daemon" ]] && echo $([[ $2 -gt 0 ]] && echo $COIN_DAEMON-$2 || echo $EXEC_COIN_DAEMON) \
-		  || echo $([[ $1 == "cli"    ]] && echo $([[ $2 -gt 0 ]] && echo $COIN_CLI-$2    || echo $EXEC_COIN_CLI)))
+	local use_cmd=$([[ $1 == "daemon" ]] && echo $([[ $2 -gt 0 ]] && echo $COIN_DAEMON-$2 || echo $EXEC_COIN_DAEMON))
 	[[ ! $use_cmd ]] && echo "DEBUG ERROR exec_coin passed parameter: $1" && exit || echo $use_cmd
 }
 function get_folder() {
@@ -300,7 +288,7 @@ function cmd_profadd() {
 	fi
 
 	local -A prof=$(get_conf $1)
-	local CMD_ARRAY=(COIN_NAME COIN_DAEMON COIN_CLI COIN_FOLDER COIN_CONFIG)
+	local CMD_ARRAY=(COIN_NAME COIN_DAEMON COIN_FOLDER COIN_CONFIG)
 
 	for var in "${CMD_ARRAY[@]}"; do
 		if [[ ! "${!prof[@]}" =~ "$var" ]]; then
@@ -393,8 +381,6 @@ function cmd_profdel() {
 
 	rm -rf /usr/bin/$COIN_DAEMON-0
 	rm -rf /usr/bin/$COIN_DAEMON-all
-	rm -rf /usr/bin/$COIN_CLI-0
-	rm -rf /usr/bin/$COIN_CLI-all
 	rm -rf .dupmn/$PROFILE_NAME
 
 	echo_json "{\"message\":\"profile successfully deleted\",\"deleted\":true,\"count\":$deleted_dupes}"
@@ -438,7 +424,7 @@ function cmd_install() {
 	if [[ ! $NEW_KEY ]]; then
 		for (( i=0; i<=$DUP_COUNT; i++ )); do
 			if [[ $(wallet_cmd loaded $i) ]]; then
-				NEW_KEY=$(try_cmd $(exec_coin cli $i) "createmasternodekey" "masternode genkey")
+				NEW_KEY=$(try_cmd $(exec_coin daemon $i) "createmasternodekey" "masternode genkey")
 				break
 			fi
 		done
@@ -463,11 +449,8 @@ function cmd_install() {
 	$(conf_set_value $new_folder/$COIN_CONFIG "masternodeprivkey" $NEW_KEY  1)
 	[[ ! $(grep "addnode=127.0.0.1" $new_folder/$COIN_CONFIG) ]] && echo "addnode=127.0.0.1" >> $new_folder/$COIN_CONFIG
 
-	$(make_chmod_file /usr/bin/$COIN_CLI-0      "#!/bin/bash\n$EXEC_COIN_CLI \$@")
 	$(make_chmod_file /usr/bin/$COIN_DAEMON-0   "#!/bin/bash\n$EXEC_COIN_DAEMON \$@")
-	$(make_chmod_file /usr/bin/$COIN_CLI-$1     "#!/bin/bash\n$EXEC_COIN_CLI -datadir=$new_folder \$@")
 	$(make_chmod_file /usr/bin/$COIN_DAEMON-$1  "#!/bin/bash\n$EXEC_COIN_DAEMON -datadir=$new_folder \$@")
-	$(make_chmod_file /usr/bin/$COIN_CLI-all    "#!/bin/bash\nfor (( i=0; i<=$1; i++ )) do\n echo -e MN\$i:\n $COIN_CLI-\$i \$@\ndone")
 	$(make_chmod_file /usr/bin/$COIN_DAEMON-all "#!/bin/bash\nfor (( i=0; i<=$1; i++ )) do\n echo -e MN\$i:\n $COIN_DAEMON-\$i \$@\ndone")
 
 	$(conf_set_value .dupmn/dupmn.conf $PROFILE_NAME $1 1)
@@ -476,12 +459,12 @@ function cmd_install() {
 		# main and dupes were stopped on createmasternodekey
 		echo -e "Couldn't find a opened ${BLUE}$COIN_NAME${NC} wallet opened to generate a private key, temporary opening the new wallet to generate a key"
 		$(conf_set_value $new_folder/$COIN_CONFIG "masternode"        "0"      1)
-		$COIN_DAEMON-$1 -daemon
+		$COIN_DAEMON-$1
 		wallet_cmd loaded $1 30 > /dev/null
 		NEW_KEY=$(try_cmd $(exec_coin cli $1) "createmasternodekey" "masternode genkey")
 		$(conf_set_value $new_folder/$COIN_CONFIG "masternodeprivkey" $NEW_KEY 1)
 		$(conf_set_value $new_folder/$COIN_CONFIG "masternode"        "1"      1)
-		$COIN_CLI-$1 stop
+		$COIN_DAEMON-$1 stop
 		sleep 3
 	fi
 
@@ -508,7 +491,7 @@ function cmd_install() {
 				main_ip=$([[ $main_ip ]] && echo "$main_ip" || echo $(conf_get_value $COIN_FOLDER/$COIN_CONFIG "externalip") | rev)
 				main_ip=$(echo $([[ $main_ip =~ ^[0-9]{1,}\:. ]] && echo $main_ip | cut -d ':' -f2- || echo $main_ip) | rev)
 				$(conf_set_value $COIN_FOLDER/$COIN_CONFIG "bind" $main_ip 1)
-				if [[ $($EXEC_COIN_CLI stop 2> /dev/null) ]]; then
+				if [[ $($EXEC_COIN_DAEMON stop 2> /dev/null) ]]; then
 					sleep 5
 					$EXEC_COIN_DAEMON -daemon &> /dev/null
 					wallet_cmd loaded 0 20 > /dev/null
@@ -550,9 +533,9 @@ function cmd_install() {
 			\nNo start on reboot: ${RED}systemctl disable $COIN_NAME-$1.service${NC}\
 			\n(Currently configured to start on reboot)\
 			\nDUPLICATED MASTERNODE PRIVATEKEY is: ${GREEN}$NEW_KEY${NC}\
-			\nTo check the masternode status just use: ${GREEN}$COIN_CLI-$1 masternode status${NC} (Wait until the new masternode is synced with the blockchain before trying to start it).\
-			\nNOTE 1: ${GREEN}$COIN_CLI-0${NC} and ${GREEN}$COIN_DAEMON-0${NC} are just a reference to the 'main masternode', not a created one with dupmn.\
-			\nNOTE 2: You can use ${GREEN}$COIN_CLI-all [parameters]${NC} and ${GREEN}$COIN_DAEMON-all [parameters]${NC} to apply the parameters on all masternodes. Example: ${GREEN}$COIN_CLI-all masternode status${NC}\
+			\nTo check the masternode status just use: ${GREEN}$COIN_DAEMON-$1 masternode status${NC} (Wait until the new masternode is synced with the blockchain before trying to start it).\
+			\nNOTE 1: ${GREEN}$COIN_DAEMON-0${NC} is just a reference to the 'main masternode', not a created one with dupmn.\
+			\nNOTE 2: You can use ${GREEN}$COIN_DAEMON-all [parameters]${NC} to apply the parameters on all masternodes. Example: ${GREEN}$COIN_DAEMON-all masternode status${NC}\
 			\n==================================================================================================="
 
 	if [[ $IP ]]; then
@@ -588,7 +571,6 @@ function cmd_reinstall() {
 	cmd_install $1
 	DUP_COUNT=$tmp_dupcount
 
-	$(make_chmod_file /usr/bin/$COIN_CLI-all    "#!/bin/bash\nfor (( i=0; i<=$DUP_COUNT; i++ )) do\n echo -e MN\$i:\n $COIN_CLI-\$i \$@\ndone")
 	$(make_chmod_file /usr/bin/$COIN_DAEMON-all "#!/bin/bash\nfor (( i=0; i<=$DUP_COUNT; i++ )) do\n echo -e MN\$i:\n $COIN_DAEMON-\$i \$@\ndone")
 
 	$(conf_set_value .dupmn/dupmn.conf $PROFILE_NAME $DUP_COUNT)
@@ -600,14 +582,12 @@ function cmd_uninstall() {
 		for (( i=$DUP_COUNT; i>=1; i-- )); do
 			echo -e "Uninstalling ${BLUE}$PROFILE_NAME${NC} instance ${CYAN}number $i${NC}"
 			wallet_cmd stop $i > /dev/null
-			rm -rf /usr/bin/$COIN_CLI-$i
 			rm -rf /usr/bin/$COIN_DAEMON-$i
 			systemctl disable $COIN_NAME-$i.service &> /dev/null
 			rm -rf /etc/systemd/system/$COIN_NAME-$i.service
 			rm -rf $COIN_FOLDER$i
 		done
 		$(conf_set_value .dupmn/dupmn.conf $PROFILE_NAME 0 1)
-		$(make_chmod_file /usr/bin/$COIN_CLI-all    "#!/bin/bash\nfor (( i=0; i<=0; i++ )) do\n echo -e MN\$i:\n $COIN_CLI-\$i \$@\ndone")
 		$(make_chmod_file /usr/bin/$COIN_DAEMON-all "#!/bin/bash\nfor (( i=0; i<=0; i++ )) do\n echo -e MN\$i:\n $COIN_DAEMON-\$i \$@\ndone")
 		systemctl daemon-reload
 		echo_json "{\"message\":\"dupe/s successfully uninstalled\",\"count\":$DUP_COUNT,\"dupes\":[$(seq -s ',' 1 $DUP_COUNT)]}"
@@ -632,11 +612,9 @@ function cmd_uninstall() {
 		echo -e "Modifying instance pointers"
 
 		for (( i=0; i < ${#del_list[@]}; i++ )); do
-			rm -rf /usr/bin/$COIN_CLI-$(($DUP_COUNT-$i))
 			rm -rf /usr/bin/$COIN_DAEMON-$(($DUP_COUNT-$i))
 		done
 		
-		$(make_chmod_file /usr/bin/$COIN_CLI-all    "#!/bin/bash\nfor (( i=0; i<=$(($DUP_COUNT-${#del_list[@]})); i++ )) do\n echo -e MN\$i:\n $COIN_CLI-\$i \$@\ndone")
 		$(make_chmod_file /usr/bin/$COIN_DAEMON-all "#!/bin/bash\nfor (( i=0; i<=$(($DUP_COUNT-${#del_list[@]})); i++ )) do\n echo -e MN\$i:\n $COIN_DAEMON-\$i \$@\ndone")
 		$(conf_set_value .dupmn/dupmn.conf $PROFILE_NAME $(($DUP_COUNT-${#del_list[@]})) 1)
 
@@ -677,7 +655,7 @@ function cmd_bootstrap() {
 	elif [[ ($1 -eq 0 || $2 -eq 0) && $(wallet_cmd loaded) ]]; then 
 		if [[ ! $COIN_SERVICE || ! -f /etc/systemd/system/$COIN_SERVICE ]]; then
 			[[ ! $COIN_SERVICE ]] && echo -e "${MAGENTA}Main MN service not detected in the profile, can't temporary stop the main node to copy the chain.${NC}" || echo -e "${MAGENTA}Main MN service ($COIN_SERVICE) not found in /etc/systemd/system${NC}"			
-			echo -e "Main masternode must be stopped to copy the chain, use ${GREEN}$COIN_CLI stop${NC} to stop the main node."
+			echo -e "Main masternode must be stopped to copy the chain, use ${GREEN}$COIN_DAEMON stop${NC} to stop the main node."
 			[[ $2 -eq 0 ]] && echo -e "Optionally you can put use a dupe as source of the chain files, example: ${YELLOW}dupmn bootstrap PROFILE 2 1${NC} (copy dupe 1 to dupe 2)."
 			echo -e "NOTE: Some main nodes may need to stop a systemd service instead, like ${GREEN}systemctl stop $COIN_NAME.service${NC}."
 			echo_json "{\"error\":\"Main node must be manually stopped for the bootstrap\",\"errcode\":601}"
@@ -855,9 +833,9 @@ function cmd_list() {
 	function print_dup_info() {
 		# [$1 = dupe]
 		local js_params=("\"id\":$([[ $1 ]] && echo $1 || echo 0)")
-		local mn_status="$(try_cmd $(exec_coin cli $1) "masternode status")"
+		local mn_status="$(try_cmd $(exec_coin daemon $1) "masternode status")"
 		[[ ${args[@]} =~ "o" ]] && print_param_info "online"  0 "  online  : " "$([[ $mn_status ]] && echo ${BLUE}true${NC} || echo ${RED}false${NC})"
-		[[ ${args[@]} =~ "b" ]] && print_param_info "block"   0 "  block   : " "$($(exec_coin cli $1) getblockcount)"
+		[[ ${args[@]} =~ "b" ]] && print_param_info "block"   0 "  block   : " "$($(exec_coin daemon $1) getblockcount)"
 		[[ ${args[@]} =~ "s" ]] && print_param_info "status"  1 "  status  : " "$([[ $mn_status ]] && echo ${GRAY}${mn_status//[$'\r\n']}${NC} || echo ${RED}\(disabled\)${NC})"
 		[[ ${args[@]} =~ "i" ]] && print_param_info "ip"      1 "  ip      : " "${YELLOW}$(conf_get_value $COIN_FOLDER$1/$COIN_CONFIG $([[ $(conf_get_value $COIN_FOLDER$1/$COIN_CONFIG "masternodeaddr") ]] && echo "masternodeaddr" || echo "externalip"))${NC}"
 		[[ ${args[@]} =~ "r" ]] && print_param_info "rpcport" 0 "  rpcport : " "${MAGENTA}$(conf_get_value $COIN_FOLDER$1/$COIN_CONFIG rpcport)${NC}"

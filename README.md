@@ -17,33 +17,33 @@ A script to easily create and manage multiple masternodes of the same coin in th
 
 On your VPS type:
 ```
-curl -sL https://raw.githubusercontent.com/neo3587/dupmn/master/dupmn_install.sh | sudo -E bash -
+curl -sL https://raw.githubusercontent.com/rubber-duckie-au/dupmn/master/dupmn_install.sh | sudo -E bash -
 ```
 And that's all, the script is already installed.
 Check the [Usage example](#usage-example) to see the guide of the steps to follow.
 
 # <a name ="commands"></a> Commands
 
-- [`dupmn profadd <profile_file> [new_profile_name]`](https://github.com/neo3587/dupmn/wiki/Commands#profadd) : Adds a profile with the given name that will be used to create dupes of the masternode.
-- [`dupmn profdel <profile_name>`](https://github.com/neo3587/dupmn/wiki/Commands#profdel) : Deletes the saved profile with the given name and uninstalls the dupes made with that profile.
-- [`dupmn install <profile_name> [params...]`](https://github.com/neo3587/dupmn/wiki/Commands#install) : Install a new dupe based on the parameters of the given profile name. Optional `[params]` list:  
+- [`dupmn profadd <profile_file> [new_profile_name]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#profadd) : Adds a profile with the given name that will be used to create dupes of the masternode.
+- [`dupmn profdel <profile_name>`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#profdel) : Deletes the saved profile with the given name and uninstalls the dupes made with that profile.
+- [`dupmn install <profile_name> [params...]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#install) : Install a new dupe based on the parameters of the given profile name. Optional `[params]` list:  
 `-i IP`, `--ip=IP` : Use a specific IPv4 or IPv6.  
 `-r RPC`, `--rpcport=RPC` : Use a specific port for RPC commands (must be valid and not in use).  
 `-p KEY`, `--privkey=KEY` : Set a user-defined masternode private key.  
 `-b`, `--bootstrap` : Apply a bootstrap during the installation.  
-- [`dupmn reinstall <profile_name> <node> [params...]`](https://github.com/neo3587/dupmn/wiki/Commands#reinstall) : Reinstalls the specified node number, this is just in case if the instance is giving problems. Optional `[params]` list:  
+- [`dupmn reinstall <profile_name> <node> [params...]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#reinstall) : Reinstalls the specified node number, this is just in case if the instance is giving problems. Optional `[params]` list:  
 `-i IP`, `--ip=IP` : Use a specific IPv4 or IPv6.  
 `-r RPC`, `--rpcport=RPC` : Use a specific port for RPC commands (must be valid and not in use).  
 `-p KEY`, `--privkey=KEY` : Set a user-defined masternode private key.   
 `-b`, `--bootstrap` : Apply a bootstrap during the reinstallation.  
-- [`dupmn uninstall <profile_name> <node...|all>`](https://github.com/neo3587/dupmn/wiki/Commands#uninstall) : Uninstall one or many nodes dupes of the given profile name, you can put `all` instead of a node number to uninstall all the dupes.
-- [`dupmn bootstrap <profile_name> <node_1> <node_2>`](https://github.com/neo3587/dupmn/wiki/Commands#bootstrap) : Copies the stored chain from the node_1 to the node_2.
-- [`dupmn iplist`](https://github.com/neo3587/dupmn/wiki/Commands#iplist) : Shows your current IPv4 and IPv6 addresses.
-- [`dupmn ipadd <ip> <netmask> [interface]`](https://github.com/neo3587/dupmn/wiki/Commands#ipadd) : Adds an IPv4 or IPv6 address.
-- [`dupmn ipdel <ip> <netmask> [interface]`](https://github.com/neo3587/dupmn/wiki/Commands#ipdel) : Deletes an IPv4 or IPv6 address.
-- [`dupmn rpcchange <profile_name> <node> [port]`](https://github.com/neo3587/dupmn/wiki/Commands#rpcchange) : Changes the rpc port of the given node number, this is only in case that by chance it causes a conflict with another application that uses the same port (if no port is provided, it will automatically find any free port).
-- [`dupmn systemctlall <profile_name> <command>`](https://github.com/neo3587/dupmn/wiki/Commands#systemctlall) : Applies the systemctl command to all services created with the given profile (will only affect the main node too if the profile haves the COIN_SERVICE parameter).
-- [`dupmn list [profile_names...] [params...]`](https://github.com/neo3587/dupmn/wiki/Commands#list) : Shows the amount of duplicated instances of every masternode, if a profile name/s are provided, it lists an extended info of the profile/s instances. Optional `[params...]` list:  
+- [`dupmn uninstall <profile_name> <node...|all>`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#uninstall) : Uninstall one or many nodes dupes of the given profile name, you can put `all` instead of a node number to uninstall all the dupes.
+- [`dupmn bootstrap <profile_name> <node_1> <node_2>`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#bootstrap) : Copies the stored chain from the node_1 to the node_2.
+- [`dupmn iplist`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#iplist) : Shows your current IPv4 and IPv6 addresses.
+- [`dupmn ipadd <ip> <netmask> [interface]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#ipadd) : Adds an IPv4 or IPv6 address.
+- [`dupmn ipdel <ip> <netmask> [interface]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#ipdel) : Deletes an IPv4 or IPv6 address.
+- [`dupmn rpcchange <profile_name> <node> [port]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#rpcchange) : Changes the rpc port of the given node number, this is only in case that by chance it causes a conflict with another application that uses the same port (if no port is provided, it will automatically find any free port).
+- [`dupmn systemctlall <profile_name> <command>`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#systemctlall) : Applies the systemctl command to all services created with the given profile (will only affect the main node too if the profile haves the COIN_SERVICE parameter).
+- [`dupmn list [profile_names...] [params...]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#list) : Shows the amount of duplicated instances of every masternode, if a profile name/s are provided, it lists an extended info of the profile/s instances. Optional `[params...]` list:  
 `-a`, `--all` : Use all the available params below.  
 `-o`, `--online` : Show if the node is active or not.  
 `-b`, `--blockcount` : Show the current block number.  
@@ -51,13 +51,13 @@ Check the [Usage example](#usage-example) to see the guide of the steps to follo
 `-i`, `--ip` : Show the ip and port.  
 `-r`, `--rpcport` : Show the rpc port.  
 `-p`, `--privkey` : Show the masternode private key.  
-- [`dupmn swapfile <size_in_mbytes>`](https://github.com/neo3587/dupmn/wiki/Commands#swapfile) : Creates/changes or deletes (if value is 0) a swapfile to increase the virtual memory, allowing to fit more masternodes in the same VPS, recommended size is 150 MB for each masternode (example: 3 masternodes => `dupmn swapfile 450`), note that some masternodes might be more 'RAM hungry'.
-- [`dupmn checkmem`](https://github.com/neo3587/dupmn/wiki/Commands#checkmem) : Shows the RAM usage (in %) of each node group.
-- [`dupmn help`](https://github.com/neo3587/dupmn/wiki/Commands#help) : Just shows the available commands in the console.
-- [`dupmn update`](https://github.com/neo3587/dupmn/wiki/Commands#update) : Checks the last version of the script and updates it if necessary.
+- [`dupmn swapfile <size_in_mbytes>`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#swapfile) : Creates/changes or deletes (if value is 0) a swapfile to increase the virtual memory, allowing to fit more masternodes in the same VPS, recommended size is 150 MB for each masternode (example: 3 masternodes => `dupmn swapfile 450`), note that some masternodes might be more 'RAM hungry'.
+- [`dupmn checkmem`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#checkmem) : Shows the RAM usage (in %) of each node group.
+- [`dupmn help`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#help) : Just shows the available commands in the console.
+- [`dupmn update`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#update) : Checks the last version of the script and updates it if necessary.
 
 *Note: `<parameter>` means required, `[parameter]` means optional, `parameter...` means 1 or more parameters, `param1|param2` means either param1 or param2, all `node` are always a number that refers to a dupe (0 is the main node and is allowed in some commands)*  
-*Note 2: Check the [Commands Page](https://github.com/neo3587/dupmn/wiki/Commands) for extended info and usage examples of each command.*
+*Note 2: Check the [Commands Page](https://github.com/rubber-duckie-au/dupmn/wiki/Commands) for extended info and usage examples of each command.*
 
 # <a name ="usage-example"></a> Usage example
 
@@ -65,39 +65,39 @@ Usage example based on the MCPCoin profile:
 
 First install the dupmn script (only needs to be done once):
 ``` 
-curl -sL https://raw.githubusercontent.com/neo3587/dupmn/master/dupmn_install.sh | sudo -E bash -
+curl -sL https://raw.githubusercontent.com/rubber-duckie-au/dupmn/master/dupmn_install.sh | sudo -E bash -
 ``` 
-Then add the coin profile (if the profile doesn't exists in the [profiles folder](https://github.com/neo3587/dupmn/tree/master/profiles), then check [Profile creation](#profile-creation)):
+Then add the coin profile (if the profile doesn't exists in the [profiles folder](https://github.com/rubber-duckie-au/dupmn/tree/master/profiles), then check [Profile creation](#profile-creation)):
 ```
-wget -q https://raw.githubusercontent.com/neo3587/dupmn/master/profiles/MCPCoin.dmn
-dupmn profadd MCPCoin.dmn MCPCoin
+wget -q https://raw.githubusercontent.com/rubber-duckie-au/dupmn/master/profiles/DigitalNote.dmn
+dupmn profadd DigitalNote.dmn DigitalNote
 ```
-Now the MCPCoin profile is saved and the downloaded file can be removed if you want: `rm -rf MCPCoin.dmn` (you won't need to run the `profadd` command anymore for this coin).
+Now the DigitalNote profile is saved and the downloaded file can be removed if you want: `rm -rf DigitalNote.dmn` (you won't need to run the `profadd` command anymore for this coin).
 
-Let's create 3 extra instances (Note that you MUST already have installed the MCPCoin node in the VPS, the script cannot obtain the binaries from nowhere):
+Let's create 3 extra instances (Note that you MUST already have installed the DigitalNote node in the VPS, the script cannot obtain the binaries from nowhere):
 ```
-dupmn install MCPCoin 
-dupmn install MCPCoin
-dupmn install MCPCoin
+dupmn install DigitalNote 
+dupmn install DigitalNote
+dupmn install DigitalNote
 ```
-Every instance has it own private key, it will be shown after installing the new instance, also can be seen with `dupmn list MCPCoin`.
+Every instance has it own private key, it will be shown after installing the new instance, also can be seen with `dupmn list DigitalNote`.
 
 Now you can manage every instance like this:
 ```
-MCPCoin-cli-1 masternode status
-MCPCoin-cli-2 getblockcount
-MCPCoin-cli-3 getinfo
-MCPCoin-cli-all masternode status
+DigitalNoted-1 masternode status
+DigitalNoted-2 getblockcount
+DigitalNoted-3 getinfo
+DigitalNoted-all masternode status
 ```
-There's also a `MCPCoin-cli-0`, but is just a reference to the 'main node', not a created one with dupmn.
+There's also a `DigitalNote-cli-0`, but is just a reference to the 'main node', not a created one with dupmn.
 
 When you get tired of one masternode, per example the 3rd instance, then just uninstall it with:
 ```
-dupmn uninstall MCPCoin 3
+dupmn uninstall DigitalNote 3
 ```
 Or you can even uninstall them all (except the 'main node') with:
 ```
-dupmn uninstall MCPCoin all
+dupmn uninstall DigitalNote all
 ```
 The new masternode instances will use the same IP and port, so the `masternode.conf` will look like this:
 ```
@@ -106,9 +106,9 @@ MN02 123.45.67.89:49451 4y9xiAx7npcE88gCjqbQfYJHkvgY4V2of9T87gd2qyACohH8SpQ 2607
 MN03 123.45.67.89:49451 4xP6ZwspdJ6qRwzZUZW4VSLXxR3z15zYnwA6wc1CUWk9pCdjrA2 349acfcf2ea88ab0f9f165ebfd4b98273e260b813b757242e1f371d7075d3f94 1
 MN04 123.45.67.89:49451 4yUJe3fzQ8t11ukVULUrKfHUswujAwRWi33tTXp41rsEc9PENM8 6dbff523ae79c29c48bcd77231f15c0b8354daa2ea32cb46ed0dd0fe31ec7e82 0
 ```
-Using `dupmn install MCPCoin` will show you the masternode private key for that instance, the transaction must be obviosuly different for each masternode, you can't use the same transaction to run 2 masternodes, even if they're in the same VPS.
+Using `dupmn install DigitalNote` will show you the masternode private key for that instance, the transaction must be obviosuly different for each masternode, you can't use the same transaction to run 2 masternodes, even if they're in the same VPS.
 
-*Note: `dupmn install MCPCoin` will show you also a different rpc port, this is NOT the port that you have to add in the `masternode.conf` file, every masternode will use the same port (49451 in case of MCPCoin).*  
+*Note: `dupmn install DigitalNote` will show you also a different rpc port, this is NOT the port that you have to add in the `masternode.conf` file, every masternode will use the same port (18094 in case of DigitalNote).*  
 
 # <a name ="profile-creation"></a> Profile creation
 
@@ -134,12 +134,20 @@ dupmn install othercoin
 
 # <a name ="considerations"></a> Considerations
 
-A VPS doesn't have unlimited resources, creating too many instances may cause Out-Of-Memory error since MNs are a bit "RAM hungry" (can be partially fixed with [`dupmn swapfile`](https://github.com/neo3587/dupmn/wiki/Commands#swapfile) command), there's also a limited hard-disk space and the blockchain increases in size everyday (so be sure to have a lot of free hard disk space, can be checked with `df -h`), and VPS providers usually puts a limit on monthly network bandwith (so running too many instances may get you to that limit).
+A VPS doesn't have unlimited resources, creating too many instances may cause Out-Of-Memory error since MNs are a bit "RAM hungry" (can be partially fixed with [`dupmn swapfile`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#swapfile) command), there's also a limited hard-disk space and the blockchain increases in size everyday (so be sure to have a lot of free hard disk space, can be checked with `df -h`), and VPS providers usually puts a limit on monthly network bandwith (so running too many instances may get you to that limit).
 
 # <a name ="additional"></a> Additional
 
 ```
+Rubber-Duckie (Updated and stripped for XDN use):
 BTC Donations:   1EBLFpnrfXKPdYndiUK86YuZWuQvAZqr1Y
 ETH Donations:   0xC85C86F34eA252DC4Adc510999f646cF74822EEE
 XDN Donations:   dN4BYnVE8dBxRUbuBaLzguYdy3AjbmowsE
+
+neo3587 (Original Creator):
+BTC Donations:   3F6J19DmD5jowwwQbE9zxXoguGPVR716a7
+ETH Donations:   0x7F9D6d654aEb3375A2974294a0911223d5d1DA52
+LTC Donations:   MToq5nZkGh9TWpfQAEjue8ERFcaz6GFB57
+DOGE Donations:  DK19TK7gex1j5gfJ5bebXcnCmwUjbhMHST
+MCPC Donations:  MCwe8WxWNmcZL1CpdpG3yuudGYVphmTSLE
 ```
