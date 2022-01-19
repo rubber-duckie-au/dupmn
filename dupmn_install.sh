@@ -23,7 +23,7 @@ echo -e "\n===================================================\
          \n                                ╗ made by ${GREEN}neo3587${NC} ╔\
          \n           Source: ${CYAN}https://github.com/neo3587/dupmn${NC}\
          \n   FAQs: ${CYAN}https://github.com/neo3587/dupmn/wiki/FAQs${NC}\
-	 \n   Update for XDN: ${CYAN}https://github.com/rubber-duckie-au/dupmn${NC}\
+         \n   Update for XDN: ${CYAN}https://github.com/rubber-duckie-au/dupmn${NC}\
          \n   BTC Donations (Duckie): ${YELLOW}1EBLFpnrfXKPdYndiUK86YuZWuQvAZqr1Y${NC}\
          \n===================================================\
          \n                                                   "
