@@ -1,0 +1,8 @@
+COIN_NAME="DigitalNote"
+COIN_PATH="/usr/bin/"
+COIN_DAEMON="DigitalNoted"
+COIN_CLI="DigitalNoted"
+COIN_FOLDER="/root/.XDN"
+COIN_CONFIG="DigitalNote.conf"
+RPC_PORT=18294
+FORCE_LISTEN=1
