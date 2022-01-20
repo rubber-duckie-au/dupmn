@@ -33,17 +33,20 @@ COIN_NAME=""
 COIN_DAEMON=""
 COIN_FOLDER=""
 COIN_CONFIG=""
+COIN_PORT=""
 RPC_PORT=""
 COIN_SERVICE=""
 DUP_COUNT=""
 EXEC_COIN_DAEMON=""
 IP=""
 IP_TYPE=""
+NEW_PORT=""
 NEW_RPC=""
 NEW_KEY=""
 INSTALL_BOOTSTRAP=""
 FORCE_LISTEN=""
 AUTO_IPV6=""
+SVR_IP=""
 
 
 function echo_json() {
@@ -91,6 +94,7 @@ function load_profile() {
 	COIN_DAEMON="${prof[COIN_DAEMON]}"
 	COIN_FOLDER="${prof[COIN_FOLDER]}"
 	COIN_CONFIG="${prof[COIN_CONFIG]}"
+	COIN_PORT="${prof[COIN_PORT]}"
 	RPC_PORT="${prof[RPC_PORT]}"
 	COIN_SERVICE="${prof[COIN_SERVICE]}"
 	DUP_COUNT=$(stoi ${conf[$1]})
@@ -133,10 +137,8 @@ function find_port() {
 		done
 	}
 
-	local dup_ports="$(conf_get_value $COIN_FOLDER/$COIN_CONFIG port)"
-	[[ ! $(is_number $dup_ports) ]] && dup_ports=$(conf_get_value $COIN_FOLDER/$COIN_CONFIG "masternodeaddr" | rev | cut -d : -f1 | rev)
-	[[ ! $(is_number $dup_ports) ]] && dup_ports=$(conf_get_value $COIN_FOLDER/$COIN_CONFIG "externalip"     | rev | cut -d : -f1 | rev)
 	for (( i=1; i<=$DUP_COUNT; i++ )); do
+		dup_ports="$dup_ports $(conf_get_value $COIN_FOLDER$i/$COIN_CONFIG port) "
 		dup_ports="$dup_ports $(conf_get_value $COIN_FOLDER$i/$COIN_CONFIG rpcport) "
 	done
 	local port=$(port_check_loop $1 49151 "( $dup_ports )")
@@ -429,14 +431,23 @@ function cmd_install() {
 			fi
 		done
 	fi
+	if [[ ! $NEW_PORT ]]; then
+		NEW_PORT=$([[ $COIN_PORT ]] && echo $COIN_PORT || conf_get_value $COIN_FOLDER/$COIN_CONFIG "port")
+		NEW_PORT=$(find_port $(($([[ $NEW_PORT ]] && stoi $NEW_PORT || echo 1023)+1)))
+	fi
 	if [[ ! $NEW_RPC ]]; then
-		NEW_RPC=$([[ $RPC_PORT ]] && echo $RPC_PORT || conf_get_value $COIN_FOLDER/$COIN_CONFIG "rpcport")
-		NEW_RPC=$(find_port $(($([[ $NEW_RPC ]] && stoi $NEW_RPC || echo 1023)+1)))
+		NEW_RPC=$([[ $RPC_PORT ]] && echo $RPC_PORT || echo $(($NEW_PORT+1)))
+		NEW_RPC=$(find_port $(($([[ $NEW_RPC ]] && stoi $(($NEW_PORT+1)) || echo 1023)+1)))
 	fi
 
 	mkdir $new_folder &> /dev/null
 	cp $COIN_FOLDER/$COIN_CONFIG $new_folder
 
+	if [[ ! $IP ]]; then
+		SVR_IP=$(curl -s4 icanhazip.com)
+	else 
+		SVR_IP=$IP
+	fi
 	local new_user=$(conf_get_value $COIN_FOLDER/$COIN_CONFIG "rpcuser")
 	local new_pass=$(conf_get_value $COIN_FOLDER/$COIN_CONFIG "rpcpassword")
 	new_user=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $([[ ${#new_user} -gt 3 ]] && echo ${#new_user} || echo 10) | head -n 1)
@@ -444,10 +455,13 @@ function cmd_install() {
 
 	$(conf_set_value $new_folder/$COIN_CONFIG "rpcuser"           $new_user 1)
 	$(conf_set_value $new_folder/$COIN_CONFIG "rpcpassword"       $new_pass 1)
+	$(conf_set_value $new_folder/$COIN_CONFIG "port"              $NEW_PORT 1)
 	$(conf_set_value $new_folder/$COIN_CONFIG "rpcport"           $NEW_RPC  1)
-	$(conf_set_value $new_folder/$COIN_CONFIG "listen"            0         1)
+	$(conf_set_value $new_folder/$COIN_CONFIG "listen"            1         1)
 	$(conf_set_value $new_folder/$COIN_CONFIG "masternodeprivkey" $NEW_KEY  1)
-	[[ ! $(grep "addnode=127.0.0.1" $new_folder/$COIN_CONFIG) ]] && echo "addnode=127.0.0.1" >> $new_folder/$COIN_CONFIG
+	$(conf_set_value $new_folder/$COIN_CONFIG "masternode"        "1"      1)
+	$(conf_set_value $new_folder/$COIN_CONFIG "masternodeaddr"    $SVR_IP:$NEW_PORT  1)
+	#[[ ! $(grep "addnode=127.0.0.1" $new_folder/$COIN_CONFIG) ]] && echo "addnode=127.0.0.1" >> $new_folder/$COIN_CONFIG
 
 	$(make_chmod_file /usr/bin/$COIN_DAEMON-0   "#!/bin/bash\n$EXEC_COIN_DAEMON \$@")
 	$(make_chmod_file /usr/bin/$COIN_DAEMON-$1  "#!/bin/bash\n$EXEC_COIN_DAEMON -datadir=$new_folder \$@")
@@ -461,7 +475,7 @@ function cmd_install() {
 		$(conf_set_value $new_folder/$COIN_CONFIG "masternode"        "0"      1)
 		$COIN_DAEMON-$1
 		wallet_cmd loaded $1 30 > /dev/null
-		NEW_KEY=$(try_cmd $(exec_coin cli $1) "createmasternodekey" "masternode genkey")
+		NEW_KEY=$(try_cmd $(exec_coin daemon $1) "createmasternodekey" "masternode genkey")
 		$(conf_set_value $new_folder/$COIN_CONFIG "masternodeprivkey" $NEW_KEY 1)
 		$(conf_set_value $new_folder/$COIN_CONFIG "masternode"        "1"      1)
 		$COIN_DAEMON-$1 stop
@@ -525,14 +539,20 @@ function cmd_install() {
 
 	echo -e "===================================================================================================\
 			\n${BLUE}$COIN_NAME${NC} duplicated masternode ${CYAN}number $1${NC} should be now up and trying to sync with the blockchain.\
-			\nThe duplicated masternode uses the $([[ $show_ip ]] && echo "IP:PORT ${YELLOW}$show_ip:$([[ $mn_port ]] && echo $mn_port || echo ????)${NC}" || echo "same IP and PORT than the original one").\
+			\nThe duplicated masternode uses the $([[ $show_ip ]] && echo "IP:PORT ${YELLOW}$show_ip:$([[ $mn_port ]] && echo $mn_port || echo ????)${NC}" || echo "same IP and different PORT than the original one").\
+			\nPort is ${MAGENTA}$NEW_PORT${NC}.\
 			\nRPC port is ${MAGENTA}$NEW_RPC${NC}, this one is used to send commands to the wallet, DON'T put it in 'masternode.conf' (other programs might want to use this port which causes a conflict, but you can change it with ${MAGENTA}dupmn rpcchange $PROFILE_NAME $1 PORT_NUMBER${NC}).\
-			\nStart:              ${RED}systemctl start   $COIN_NAME-$1.service${NC}\
-			\nStop:               ${RED}systemctl stop    $COIN_NAME-$1.service${NC}\
+			\nStart:              ${RED}$COIN_NAME-$1${NC}\
+			\nStop:               ${RED}$COIN_NAME-$1 stop${NC}\
 			\nStart on reboot:    ${RED}systemctl enable  $COIN_NAME-$1.service${NC}\
 			\nNo start on reboot: ${RED}systemctl disable $COIN_NAME-$1.service${NC}\
 			\n(Currently configured to start on reboot)\
 			\nDUPLICATED MASTERNODE PRIVATEKEY is: ${GREEN}$NEW_KEY${NC}\
+			\n*********************************************************************************\
+			\n ***********STRING FOR MASTERNODE.CONF FILE:***********
+			\n*********************************************************************************\
+			${GREEN}MN$1 $SVR_IP:$NEW_PORT $NEW_KEY <addtransactionID> <addtransactionNumber>
+			\n*********************************************************************************\
 			\nTo check the masternode status just use: ${GREEN}$COIN_DAEMON-$1 masternode status${NC} (Wait until the new masternode is synced with the blockchain before trying to start it).\
 			\nNOTE 1: ${GREEN}$COIN_DAEMON-0${NC} is just a reference to the 'main masternode', not a created one with dupmn.\
 			\nNOTE 2: You can use ${GREEN}$COIN_DAEMON-all [parameters]${NC} to apply the parameters on all masternodes. Example: ${GREEN}$COIN_DAEMON-all masternode status${NC}\
@@ -1083,6 +1103,11 @@ function main() {
 			case "${!i}" in
 				"-i"|--ip=*)
 					ip_parse "$(extract_param $@)" "1"
+					;;
+				"-c"|--coinport=*)
+					COIN_PORT="$(extract_param $@)"
+					[[ $COIN_PORT -lt 1024 ||  $COIN_PORT -gt 49151 ]] && echo "-coinport must be between 1024 and 49451" && exit
+					[[ ! $(port_check $COIN_PORT) ]] && echo "given -coinport seems to be in use" && exit
 					;;
 				"-r"|--rpcport=*)
 					NEW_RPC="$(extract_param $@)"
