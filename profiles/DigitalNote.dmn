@@ -5,3 +5,4 @@ COIN_CLI="DigitalNoted"
 COIN_FOLDER="/root/.XDN"
 COIN_CONFIG="DigitalNote.conf"
 RPC_PORT=18294
+COIN_SERVICE="DigitalNote.service"
