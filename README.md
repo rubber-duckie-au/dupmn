@@ -76,9 +76,9 @@ Now the DigitalNote profile is saved and the downloaded file can be removed if y
 
 Let's create 3 extra instances (Note that you MUST already have installed the DigitalNote node in the VPS, the script cannot obtain the binaries from nowhere):
 ```
-dupmn install DigitalNote 
-dupmn install DigitalNote
-dupmn install DigitalNote
+dupmn install DigitalNote -b
+dupmn install DigitalNote -b
+dupmn install DigitalNote -b
 ```
 Every instance has it own private key, it will be shown after installing the new instance, also can be seen with `dupmn list DigitalNote`.
 
