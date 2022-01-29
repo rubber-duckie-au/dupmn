@@ -27,7 +27,7 @@ readonly CYAN='\e[1;36m'
 readonly UNDERLINE='\e[1;4m'
 readonly NC='\e[0m'
 
-
+FILE_VERSION="2.0"
 PROFILE_NAME=""
 COIN_NAME=""
 COIN_DAEMON=""
