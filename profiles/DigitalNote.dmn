@@ -4,5 +4,6 @@ COIN_DAEMON="DigitalNoted"
 COIN_CLI="DigitalNoted"
 COIN_FOLDER="/root/.XDN"
 COIN_CONFIG="DigitalNote.conf"
+COIN_PORT=18092
 RPC_PORT=18094
 COIN_SERVICE="DigitalNote.service"
