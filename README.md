@@ -30,14 +30,14 @@ Check the [Usage example](#usage-example) to see the guide of the steps to follo
 `-i IP`, `--ip=IP` : Use a specific IPv4 or IPv6.  
 `-r RPC`, `--rpcport=RPC` : Use a specific port for RPC commands (must be valid and not in use).  
 `-p KEY`, `--privkey=KEY` : Set a user-defined masternode private key.  
-`-b`, `--bootstrap` : Use a specific port for RPC commands (must be valid and not in use). 
-`-c`PORT, `--coinport=PORT` : Use a specific port for daemon (must be valid and not in use if using same IP). 
+`-b`, `--bootstrap` : Apply a bootstrap during the installation.  
+`-c PORT`, `--coinport=PORT` : Use a specific port for daemon (must be valid and not in use if using same IP). 
 - [`dupmn reinstall <profile_name> <node> [params...]`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#reinstall) : Reinstalls the specified node number, this is just in case if the instance is giving problems. Optional `[params]` list:  
 `-i IP`, `--ip=IP` : Use a specific IPv4 or IPv6.  
 `-r RPC`, `--rpcport=RPC` : Use a specific port for RPC commands (must be valid and not in use).  
 `-p KEY`, `--privkey=KEY` : Set a user-defined masternode private key.   
 `-b`, `--bootstrap` : Apply a bootstrap during the reinstallation.  
-`-c`PORT, `--coinport=PORT` : Use a specific port for daemon (must be valid and not in use if using same IP). 
+`-c PORT`, `--coinport=PORT` : Use a specific port for daemon (must be valid and not in use if using same IP). 
 - [`dupmn uninstall <profile_name> <node...|all>`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#uninstall) : Uninstall one or many nodes dupes of the given profile name, you can put `all` instead of a node number to uninstall all the dupes.
 - [`dupmn bootstrap <profile_name> <node_1> <node_2>`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#bootstrap) : Copies the stored chain from the node_1 to the node_2.
 - [`dupmn iplist`](https://github.com/rubber-duckie-au/dupmn/wiki/Commands#iplist) : Shows your current IPv4 and IPv6 addresses.
